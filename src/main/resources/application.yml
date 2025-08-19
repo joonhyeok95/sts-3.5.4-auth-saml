@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: study-auth-saml
+  datasource:
+    url: jdbc:mysql://localhost:3306/platformDB?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: myuser1
+    password: mA3leDa9#8*dfk
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20      # 커넥션 풀 최대 크기 (HikariCP 기본 풀러 사용)
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      validation-timeout: 5000
+      pool-name: MyHikariCP
+      auto-commit: true
+  jpa:
+    hibernate:
+      ddl-auto: update           # 개발: update/ 운영: validate 또는 none
+    show-sql: true              # 디버깅 시 true, 운영에서는 false 권장
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect # 버전에 맞는 Dialect 지정
+    open-in-view: false    # OSIV 반드시 false
+
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          keycloak:
+            assertingparty:
+              entity-id: http://localhost:7000/realms/md-auth-store  # Keycloak Realm EntityID
+              singlesignon:
+                url: http://localhost:7000/realms/md-auth-store/protocol/saml
+              verification:
+                credentials:
+                  - certificate-location: classpath:keycloak-public.crt
+            signing:
+              credentials:
+                - private-key-location: classpath:saml-signing.key
+                  certificate-location: classpath:saml-signing.crt
+  data:
+    redis:
+      host: localhost      # Redis 서버 주소
+      port: 6379           # Redis 포트
+      # password: 비밀번호   # 필요시 작성
+
+  session:
+    store-type: redis           # 세션 저장소를 Redis로 변경
+    redis:
+      flush-mode: ON_SAVE # 세션 변경 시 즉시 Redis에 반영
+      namespace: spring:session # Redis key prefix, 서비스명 등으로 변경 추천
+      
+      
+# http://localhost:5000/swagger-ui.html        
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html  # 접속 경로 커스텀 가능
+    operationsSorter: method
+    tagsSorter: alpha
+  api-docs:
+    path: /api-docs         # API docs json 경로 변경 가능
+
+server:
+  port: 5001
+  servlet:
+    session:
+      timeout: 3600             # 세션 유효시간(초)로 지정, default 1800
+
+auth.jwt.secret: YgvoqtqQZSMVR91aUpou64pA8DV4N6Pn
+
+logging:
+  level: 
+    root: DEBUG # feignclient FULL 로그를 보려면 DEBUG
